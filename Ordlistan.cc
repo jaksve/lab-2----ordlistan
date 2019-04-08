@@ -73,10 +73,11 @@ void worder::clean(std::string & str)
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 
     str.erase(0,str.find_first_not_of("\"\'()") );
-    std::reverse(str.begin(),str.end());
 
-    str.erase(0,str.find_first_not_of(" ?!;:,.\"\')") );
-    std::reverse(str.begin(),str.end());
+    if(!str.empty())
+    {
+        str.erase(str.find_last_not_of(" ?!;:,.\"\')")+1);
+    }
 
     if(str[str.size() - 2] == '\'' && str.back() == 's')
     {

@@ -1,7 +1,7 @@
 
 #include "Ordlistan.h"
 
-worder::worder(std::ifstream & is):word_count{}
+worder::worder(std::ifstream & is,std::string arg, int count):word_count{}
 {
   
   auto to_map = [this](std::string str)
@@ -36,7 +36,7 @@ void worder::out_data(std::ostream & os)
 std::vector<std::string> worder::readwords(std::ifstream & is)
 {
   std::string line;
-  std::vector<std::string> strings;
+
 
   std::getline(is,line, static_cast<char>EOF);
   std::string tempstring;
@@ -58,7 +58,7 @@ std::vector<std::string> worder::readwords(std::ifstream & is)
         }
     };
 
-  strings.resize(static_cast<unsigned int>(std::count_if(line.begin(),line.end(),[](char i){return isblank(i)||i == '\n';} )));
+    std::vector<std::string> strings{(static_cast<unsigned int>(std::count_if(line.begin(),line.end(),[](char i){return isblank(i)||i == '\n';} ))) };
 
   std::for_each(strings.begin(),strings.end(),push_in);
 
@@ -70,47 +70,18 @@ std::vector<std::string> worder::readwords(std::ifstream & is)
   
 void worder::clean(std::string & str)
 {
-  std::list<char>const forbidden_start{'\"', '\'', '('};
-  std::list<char>const forbidden_end{'?', '!', ';', ':', ',',
-      '.', '\"', '\'', ')'};
-  bool keep_going{false};
-  auto transistor = [&keep_going,forbidden_start,&str](char c)
-  {
-      if(!keep_going)
-      {
-          if(forbidden_start.end() != std::find(forbidden_start.begin(), forbidden_start.end(), c))
-          {
-              str.erase(str.begin());
-          }
-          else
-          {keep_going = true;}
-      }
-  };
-    auto transistor2 = [&keep_going,forbidden_end,&str](char c)
-    {
-        if(!keep_going)
-        {
-            if(forbidden_end.end() != std::find(forbidden_end.begin(), forbidden_end.end(), c))
-            {
-                str.erase(str.begin());
-            }
-            else
-            {keep_going = true;}
-        }
-    };
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 
-    std::for_each(str.begin(),str.end(), transistor);
-    keep_going = false;
+    str.erase(0,str.find_first_not_of("\"\'()") );
     std::reverse(str.begin(),str.end());
-    std::for_each(str.begin(),str.end(), transistor2);
+
+    str.erase(0,str.find_first_not_of(" ?!;:,.\"\')") );
     std::reverse(str.begin(),str.end());
-  
-  if(str[str.size() - 2] == '\'' && str.back() == 's')
+
+    if(str[str.size() - 2] == '\'' && str.back() == 's')
     {
-      str.erase(str.size() - 2);
+        str.erase(str.size() - 2);
     }
-  
-  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 }
 
 bool worder::islegal(std::string str)
@@ -127,4 +98,5 @@ bool worder::islegal(std::string str)
   std::for_each(str.begin(), str.end(), lol);
     return validator;
 }
- 
+
+

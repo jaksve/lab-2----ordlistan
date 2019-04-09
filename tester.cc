@@ -2,25 +2,19 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <sstream>
+#include<sstream>
 using namespace std;
-int main(int argc ,char* argv[])
-{
-  
-  ifstream is (argv[1],ifstream::in);
-  if(!is)
-    {throw invalid_argument{"no such file."};}
-  
-  stringstream ss;
-  ss<<argv[2];
-  
-  worder word_list{is,ss.str()};
-  cout<<endl;
-  cout<<endl;
-  word_list.out_data(cout);
 
-  is.close();
+int main(int argc, char *argv[]) {
 
-     
-  return 0;
+
+
+    ifstream is("testfil.txt",ifstream::in);
+    worder word_list{is};
+    cout << endl;
+    cout << endl;
+    word_list.out_data(cout,'f',18);
+    is.close();
+
+    return 0;
 }

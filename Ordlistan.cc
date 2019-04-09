@@ -1,117 +1,105 @@
 
 #include "Ordlistan.h"
-#include <set>
-#include<functional>
-worder::worder(std::ifstream & is, std::string arg):allwords{}, word_count{}
-{
-  
-  auto to_map = [this](std::string str)
-    {
-      auto hej = this->word_count.emplace(str,1); 
-      if(!hej.second)
-	{
-	  ++(hej.first)->second;
-	}
-     
-    };
-  
-  allwords = readwords(is);
-  std::for_each(allwords.begin(), allwords.end(), to_map);
-}
 
+worder::worder(std::ifstream & is):words{readwords(is)},word_count{}
+{}
 
-void worder::out_data(std::ostream & os)
+void worder::out_data(std::ostream & os,char print_type,int cnt =0)
 {
-  
-  auto compare = [](std::pair<std::string,unsigned int> const& lhs, std::pair<std::string,unsigned int> const& rhs)
-    {
-      return lhs.second > rhs.second;
-    };
-  
-  std::vector<std::pair<std::string, unsigned int> > setofwords {word_count.begin(),word_count.end()};
-   
-  std::sort(setofwords.begin(),setofwords.end(),compare);
-  
+    int n = 0;
   auto print= [&os] (std::pair<std::string,unsigned int> item)
   {
     os<<item.first<<": "<<item.second<<std::endl;
     
   };
-	      
-  std::for_each(setofwords.begin(),setofwords.end(),print);
-  
+  auto compare = [](std::pair<std::string,unsigned int> const& lhs, std::pair<std::string,unsigned int> const& rhs)
+          {
+        return lhs.second > rhs.second;
+          };
+  auto printlad = [&n,cnt,&os](std::string str)
+  {
+      n+=str.size();
+      if(n > cnt){
+          n=str.size()+1;
+          os<<'\n';
+      }
+      os<<str<<' ';
+  };
+  std::map<std::string,unsigned int> map_words;
+    auto to_map = [&map_words](std::string str)
+    {
+        auto hej = map_words.emplace(str,1);
+        if(!hej.second)
+        {
+            ++(hej.first)->second;
+        }
+    };
+
+    std::for_each(words.begin(),words.end(),to_map);
+    std::vector<std::pair<std::string, unsigned int>> setofwords {map_words.begin(),map_words.end()};
+    switch (print_type)
+    {
+        case 'a':
+        std::for_each(setofwords.begin(), setofwords.end(), print);
+        break;
+        case 'f':
+            std::sort(setofwords.begin(),setofwords.end(),compare);
+            std::for_each(setofwords.begin(),setofwords.end(),print);
+            break;
+        case 'o':
+            std::for_each(words.begin(), words.end(), printlad);
+            break;
+        default:
+            //fixa throw error{"Missing second argument"};
+            break;
+    }
 }
 
 std::vector<std::string> worder::readwords(std::ifstream & is)
 {
   std::string line;
-  std::vector<std::string> strings;
-  while(is >> line)
+
+  std::getline(is,line, static_cast<char>EOF);
+  std::string tempstring;
+  auto isblankk = [](char c){
+      return (isblank(c)|| c == '\n');
+  };
+
+    auto push_in = [&](std::string &arg)
     {
-      clean(line);
-      if(islegal(line))
-	{
-	  strings.push_back(line);
-	  //std::cout << line << std::endl;
-	}
-    }
+        arg = line.substr(0, static_cast<unsigned int>(std::find_if(line.begin(), line.end(), isblankk) - line.begin()) );
+        line.erase(0, static_cast<unsigned int>(std::find_if( line.begin(), line.end(), isblankk) - line.begin()+1 ) );
+        clean(arg);
+
+        if(!islegal(arg))
+        {
+            arg = "";
+        }
+    };
+
+    std::vector<std::string> strings{(static_cast<unsigned int>(std::count_if(line.begin(),line.end(),[](char i){return isblank(i)||i == '\n';} ))) };
+    std::for_each(strings.begin(),strings.end(),push_in);
+    strings.erase(std::remove(strings.begin(),
+                              strings.end(),
+                              ""),strings.end());
   return strings;
 }
   
 void worder::clean(std::string & str)
-
 {
-  std::list<char>const forbidden_start{'\"', '\'', '('};
-  std::list<char>const forbidden_end{'?', '!', ';', ':', ',',
-      '.', '\"', '\'', ')'};
-  bool keep_going{false};
-  auto transistor = [&keep_going,forbidden_start,&str](char c)
-  {
-      if(!keep_going)
-      {
-          if(forbidden_start.end() != std::find(forbidden_start.begin(), forbidden_start.end(), c))
-          {
-              str.erase(str.begin());
-	      std::cout<<"illegal character in beginning: "<<c<<'\n'; 
+    std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 
-          }
-          else
-          {
-	    std::cout<<"legal character in beginning: "<<c<<'\n'; 
+    str.erase(0,str.find_first_not_of("\"\'()") );
 
-	    keep_going = true;}
-      }
-  };
-  
-    auto transistor2 = [&keep_going,forbidden_end,&str](char c)
+    if(!str.empty())
     {
-        if(!keep_going)
-        {
-            if(forbidden_end.end() != std::find(forbidden_end.begin(), forbidden_end.end(), c))
-            {
-                str.erase(str.begin());
-            }
-            else
-            {keep_going = true;}
-        }
-    };
-    //std::string::iterator it = str.begin();
-    std::cout<<"före: "<<str<<std::endl;
-    std::for_each(str.begin(),str.end(), transistor);
-    std::cout<<"efter: "<<str<<std::endl;
-    /*
-    std::for_each(str.begin(),str.end(), transistor);
-    keep_going = false;
-    std::reverse(str.begin(),str.end());
-    std::for_each(str.begin(),str.end(), transistor2);
-    std::reverse(str.begin(),str.end());
-    */
+        str.erase(str.find_last_not_of(" ?!;:,.\"\')")+1);
+    }
+
     if(str[str.size() - 2] == '\'' && str.back() == 's')
-      {
-	str.erase(str.size() - 2);
-      }
-  
-  std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+    {
+        str.erase(str.size() - 2);
+    }
 }
 
 bool worder::islegal(std::string str)
@@ -128,4 +116,5 @@ bool worder::islegal(std::string str)
   std::for_each(str.begin(), str.end(), lol);
     return validator;
 }
- 
+
+

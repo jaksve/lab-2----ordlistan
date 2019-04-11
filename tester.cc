@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
     worder word_list{is};
     cout << endl;
     cout << endl;
-    word_list.out_data(cout,'f',18);
+    word_list.out_data(cout,'a');
     is.close();
 
     return 0;

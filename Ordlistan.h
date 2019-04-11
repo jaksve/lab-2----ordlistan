@@ -5,33 +5,22 @@
 #include <fstream>
 #include <cctype>
 #include <algorithm>
-#include <list>
 #include <map>
-
-
-    enum flag_type {
-        a,
-        f,
-        o
-    };
-
+#include <iterator>
+#include <stdexcept>
+#include <iomanip>
+enum flag_type {a,f,o};
 
 class worder
 {
- public:
-  worder(std::ifstream & is);
-  void out_data(std::ostream & os,char print_type,int cnt);
+public:
+    worder(std::ifstream & is):words{readwords(is)}{}
+    void out_data(std::ostream & os,char print_type, int cnt = 0);
 
- private:
-std::vector <std::string> words;
-std::vector<std::string> readwords(std::ifstream & is);
-void clean(std::string & str);
-bool islegal(std::string str);
-
- std::map<std::string , unsigned int> word_count;
+private:
+    std::vector<std::string> readwords(std::ifstream & is);
+    std::vector<std::string> words;
 };
 
-
-
-
 #endif
+
